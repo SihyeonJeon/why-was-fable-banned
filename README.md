@@ -1,6 +1,6 @@
 # 왜 Fable을 막았어?
 
-![왜 Fable을 막았어? — spec을 통과하기 전엔 코드 편집 차단](assets/social.png)
+![왜 Fable을 막았어? — spec을 통과하기 전엔 코드 편집 차단](assets/social-preview.jpg)
 
 **AI 코딩 에이전트에게 "spec 먼저" 규율을 강제하는 게이트.**
 spec을 쓰고 통과하기 전엔 **코드 편집 차단.** Claude Code + Codex.
