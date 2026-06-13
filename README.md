@@ -1,9 +1,9 @@
-# fable-forge
+# 왜 Fable을 막았어?
 
 **AI 코딩 에이전트에게 "spec 먼저" 규율을 강제하는 게이트.**
 spec을 쓰고 통과하기 전엔 **코드 편집 차단.** Claude Code + Codex.
 
-> `git clone https://github.com/SihyeonJeon/fable-forge && cd fable-forge && sh install.sh`
+> `git clone https://github.com/SihyeonJeon/why-was-fable-banned && cd why-was-fable-banned && sh install.sh`
 
 ---
 
@@ -16,7 +16,7 @@ spec을 쓰고 통과하기 전엔 **코드 편집 차단.** Claude Code + Codex
 ## 설치
 
 ```sh
-git clone https://github.com/SihyeonJeon/fable-forge && cd fable-forge && sh install.sh
+git clone https://github.com/SihyeonJeon/why-was-fable-banned && cd why-was-fable-banned && sh install.sh
 ```
 필요: `python3` · 끄기: `touch .forge/OFF` / `FORGE_BYPASS=1` · 제거: `sh install.sh --uninstall`
 
