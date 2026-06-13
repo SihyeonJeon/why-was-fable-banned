@@ -38,7 +38,7 @@ def strip_ours(event):
     for g in groups:
         g2 = dict(g)
         g2["hooks"] = [h for h in g.get("hooks", [])
-                       if TAG not in (h.get("command", ""))]
+                       if hook_dir not in (h.get("command", ""))]
         if g2["hooks"]:
             kept.append(g2)
     if kept:
