@@ -1,0 +1,19 @@
+# fable-forge execpolicy template (tier B — best-effort, defense-in-depth)
+#
+# Codex loads execpolicy from ~/.codex/rules/*.rules. Observed grammar:
+#   prefix_rule(pattern=["cmd","arg",...], decision="allow")
+#
+# CODEX-VERIFY[deny]: confirm whether decision="deny" / "ask" are supported, and
+# what the exec shape of a Codex file edit is (apply_patch heredoc? native tool?).
+# If file edits are NOT shell commands, execpolicy CANNOT gate them — in that case
+# delete this file and rely on the forge-codex wrapper (tier A).
+#
+# IF deny is supported AND edits go through a shell command, the intended rules
+# (deny destructive/edit shells unless the project is already past the spec gate)
+# would look like the lines below. These are a TEMPLATE — do not install blindly;
+# verify the grammar first.
+
+# Example (UNVERIFIED — pending CODEX-VERIFY[deny]):
+# prefix_rule(pattern=["apply_patch"], decision="ask")
+# prefix_rule(pattern=["git", "push", "--force"], decision="ask")
+# prefix_rule(pattern=["rm", "-rf"], decision="ask")
