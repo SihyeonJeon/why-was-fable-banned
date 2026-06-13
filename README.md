@@ -8,7 +8,7 @@
 ![python](https://img.shields.io/badge/python-3-3776AB?logo=python&logoColor=white)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-native%20hooks-d97757)
 ![Codex](https://img.shields.io/badge/Codex-worktree--accept-10a37f)
-![tests](https://img.shields.io/badge/tests-23%20passing-3fb950)
+[![tests](https://github.com/SihyeonJeon/why-was-fable-banned/actions/workflows/ci.yml/badge.svg)](https://github.com/SihyeonJeon/why-was-fable-banned/actions/workflows/ci.yml)
 
 ![why-was-fable-banned](assets/social-preview.jpg)
 
@@ -17,14 +17,7 @@ gate accepts it: restated goal, non-goals, context chosen by authority, ≥2 rej
 alternatives with the boundary each breaks, risks, and runnable acceptance. One
 shared gate, installed as hooks. Works in **Claude Code** and **Codex**.
 
-```text
-$ <agent edits src/app.py>
-fable-forge: implementation blocked: SPEC gate not satisfied.
-  - restated_goal is empty: restate intent as 'achieve X without Y, scoped to Z'.
-  - non_goals is empty: fence the over-broad version you are NOT doing.
-  - need >=2 rejected_alternatives, each with the boundary it violates.
-  - acceptance_criteria needs a runnable command (not prose).
-```
+![demo: edit blocked until the spec passes, then applied](assets/demo.gif)
 
 > [!NOTE]
 > **Honest scope.** It enforces that a spec exists and passes before edits land, and
