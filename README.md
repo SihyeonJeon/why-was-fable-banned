@@ -1,5 +1,7 @@
 # 왜 Fable을 막았어?
 
+![왜 Fable을 막았어? — spec을 통과하기 전엔 코드 편집 차단](assets/social.png)
+
 **AI 코딩 에이전트에게 "spec 먼저" 규율을 강제하는 게이트.**
 spec을 쓰고 통과하기 전엔 **코드 편집 차단.** Claude Code + Codex.
 
@@ -42,7 +44,7 @@ git clone https://github.com/SihyeonJeon/why-was-fable-banned && cd why-was-fabl
 
 ---
 
-## 데이터 — 고도화된 추출 형식
+## 데이터 — 추출 형식
 
 원시 로그가 아니라 **구조화된 의사결정 스키마**로 추출. 코딩 세션을 두 층으로 캡처:
 
@@ -80,7 +82,7 @@ decision_events = { hypothesis_before, decision, rejected_options, confidence_be
 
 ---
 
-## 에이전트 내 기술적 삽입
+## 에이전트 삽입
 
 **hook 기반 runtime 주입** — user-레벨 설정에 등록 → 전 프로젝트·세션·서브에이전트·오케스트레이션 워커가 상속:
 
