@@ -7,7 +7,7 @@
 # without hook trust is needed).
 # Also places the procedure mandate in ~/.codex/AGENTS.md (inherited every session).
 # Idempotent.   sh install.sh [--uninstall]
-set -euo pipefail
+set -eu
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 HOOK_DIR="$(cd "$HERE/../hooks" && pwd)"            # shared, runtime-agnostic hooks

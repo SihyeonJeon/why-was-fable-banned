@@ -6,7 +6,7 @@
 #
 #   sh install.sh            install / refresh
 #   sh install.sh --uninstall   remove forge hooks
-set -euo pipefail
+set -eu
 
 HOOK_DIR="$(cd "$(dirname "$0")/../hooks" && pwd)"   # shared, runtime-agnostic hooks
 SETTINGS="${CLAUDE_SETTINGS:-$HOME/.claude/settings.json}"

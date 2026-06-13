@@ -7,7 +7,7 @@
 #   sh install.sh codex           # Codex only
 #   sh install.sh all             # both
 #   sh install.sh --uninstall [target]
-set -euo pipefail
+set -eu
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 have(){ command -v "$1" >/dev/null 2>&1; }
