@@ -30,6 +30,11 @@ def main() -> int:
     if is_off(root):
         return 0  # gate toggled off for this project
 
+    # No determinable edit target (degenerate payload / unknown future tool shape):
+    # fail OPEN so a tool-shape change can never brick the host's edit pipeline.
+    if not edit_targets_blob(payload).strip():
+        return 0
+
     # Exempt authoring the spec ONLY when every parsed edit target is a .forge
     # artifact. A substring match on the whole command is gameable (a real-file edit
     # whose patch text merely mentions ".forge/" would bypass), so require all paths.
