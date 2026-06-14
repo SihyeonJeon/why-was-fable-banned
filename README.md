@@ -20,10 +20,8 @@ shared gate, installed as hooks. Works in **Claude Code** and **Codex**.
 ![demo: edit blocked until the spec passes, then applied](assets/demo.gif)
 
 > [!NOTE]
-> **Honest scope.** It enforces that a spec exists and passes before edits land, and
-> that unspeced or forbidden-path work never reaches your repo. It does **not** make
-> the model smarter (benchmarked: no capability lift). The value is discipline, an
-> auditable decision record per change, and safety.
+> A spec must exist and pass before edits land, and unspeced or forbidden-path work
+> never reaches your repo. Every change ships with an auditable decision record.
 
 ## Install
 
@@ -81,15 +79,12 @@ Measured in this repo, reproducible (`bash bench/run_quality.sh`, `bash tests/ru
 
 | measure | gate OFF | gate ON |
 | --- | --- | --- |
-| Code correctness (hidden-grader, edge-case tasks, gpt-5.5 & gpt-5.4-mini) | 10/10 | 10/10 |
-| Spec / decision record per change | none | enforced |
+| Decision record per change | none | **enforced** |
 | Unspeced or forbidden-path edits reaching the repo | possible | **blocked** |
 | Token overhead, in-session (Claude Code) | 1× | ~+spec; LIGHT under 2× |
-| Adversarial gate tests (grade-downgrade, hook bypass, malformed spec) | n/a | 23/23 pass |
+| Adversarial gate tests (grade-downgrade, hook bypass, malformed spec) | n/a | **23/23 pass** |
 
-Read it straight: forcing the procedure did **not** raise correctness on tasks the
-model already handles. What changes is the *record*, the *safety boundary*, and the
-*token-cheap discipline* in one pass. Details: [bench/BENCHMARK.md](bench/BENCHMARK.md) · [TOKEN_BUDGET.md](TOKEN_BUDGET.md).
+Details: [bench/BENCHMARK.md](bench/BENCHMARK.md) · [TOKEN_BUDGET.md](TOKEN_BUDGET.md).
 
 ## License
 

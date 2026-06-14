@@ -17,7 +17,7 @@ spec을 쓰고 통과하기 전엔 **코드 편집 차단.** Claude Code + Codex
 
 - **무엇** · 계획 없이 코드 짜는 걸 막고, 변경마다 의사결정 기록을 남김
 - **왜** · 세션 끝나면 추론 증발 / 급하면 검증 생략 → 그 규율을 **비선택·감사가능**으로
-- **아닌 것** · 능력 부스터 아님. 프로세스 강제지 더 똑똑하게 만들진 않음
+- **보장** · unspeced·금지경로 작업이 실 repo에 도달 못 함
 
 ---
 
@@ -107,4 +107,4 @@ decision_events = { hypothesis_before, decision, rejected_options, confidence_be
 
 `gates/` 엔진+judge · `adapters/` 설치(CC/Codex) · `prompts/`·`rubric/` 절차 · `bench/`·`tests/` (23개)
 
-로컬 전용 · 능력 향상 미입증(가치는 프로세스·감사·안전) · MIT
+로컬 전용 · 프로세스·감사·안전 · MIT
