@@ -140,5 +140,25 @@ out("edit blocked again after on", edit_rc() == 2)
 PY
 while IFS='|' read -r st name; do chk "$st" "PASS" "$name"; done < /tmp/tog.txt
 
+echo "== 9. edge cases (robustness / no-brick) =="
+python3 - "$HOOKS" "$GATE" >/tmp/edge.txt 2>&1 <<'PY'
+import json, os, subprocess, sys, tempfile
+HOOKS, GATE = sys.argv[1], sys.argv[2]
+D = tempfile.mkdtemp(); open(D + "/real.py", "w").write("x=1")
+subprocess.run([sys.executable, GATE, "scaffold", "--root", D, "--goal", "add x"], capture_output=True)
+env = dict(os.environ, CLAUDE_PROJECT_DIR=D); env.pop("FORGE_BYPASS", None)
+def pre(raw, e=env): return subprocess.run([sys.executable, f"{HOOKS}/pre_tool_use.py"], input=raw, capture_output=True, text=True, env=e).returncode
+def out(n, c): print(f"{'PASS' if c else 'FAIL'}|{n}")
+ap = lambda *ps: json.dumps({"tool_name": "apply_patch", "tool_input": {"command": "".join(f"*** Update File: {p}\n+x\n" for p in ps)}, "cwd": D})
+out("empty stdin fails open", pre("") == 0)
+out("garbage stdin fails open", pre("not json") == 0)
+out("no tool_input fails open (no brick)", pre(json.dumps({"tool_name": "Edit", "cwd": D})) == 0)
+out("non-edit tool ignored", pre(json.dumps({"tool_name": "Read", "tool_input": {"file_path": D + "/x"}, "cwd": D})) == 0)
+out("apply_patch mixed (.forge+real) blocks", pre(ap(D + "/.forge/spec.json", D + "/real.py")) == 2)
+out("apply_patch only .forge allowed", pre(ap(D + "/.forge/spec.json")) == 0)
+out("FORGE_BYPASS allows", pre(json.dumps({"tool_name": "Edit", "tool_input": {"file_path": D + "/real.py"}, "cwd": D}), dict(env, FORGE_BYPASS="1")) == 0)
+PY
+while IFS='|' read -r st name; do chk "$st" "PASS" "$name"; done < /tmp/edge.txt
+
 echo; echo "==== TOTAL: $PASS pass, $FAIL fail ===="
 [ "$FAIL" = "0" ] || exit 1
