@@ -30,5 +30,133 @@
     "cost": 2.6265645,
     "turns": 52,
     "secs": 627
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-c09e1439f145c66ee3af574386e277dd2388d094-v2ef375ac784985212b1805e1d0431dc8f1b3c171",
+    "arm": "naked",
+    "tokens": 680640,
+    "cost": 0.9085480000000001,
+    "turns": 18,
+    "secs": 175
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-c09e1439f145c66ee3af574386e277dd2388d094-v2ef375ac784985212b1805e1d0431dc8f1b3c171",
+    "arm": "gated",
+    "tokens": 2421023,
+    "cost": 2.6477960000000005,
+    "turns": 43,
+    "secs": 670
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-35168ade46184d7e5b91dfa04ca42fe2abd82717-v363c8a7e5ccdf6968fc7ab84a2053ac78036691d",
+    "arm": "naked",
+    "tokens": 547483,
+    "cost": 0.759504,
+    "turns": 20,
+    "secs": 149
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-35168ade46184d7e5b91dfa04ca42fe2abd82717-v363c8a7e5ccdf6968fc7ab84a2053ac78036691d",
+    "arm": "gated",
+    "tokens": 2118825,
+    "cost": 2.294224,
+    "turns": 42,
+    "secs": 439
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-fec187c2cb53d769c2682b35ca77858a811414a8-v363c8a7e5ccdf6968fc7ab84a2053ac78036691d",
+    "arm": "naked",
+    "tokens": 1343707,
+    "cost": 1.8191674999999996,
+    "turns": 30,
+    "secs": 401
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-fec187c2cb53d769c2682b35ca77858a811414a8-v363c8a7e5ccdf6968fc7ab84a2053ac78036691d",
+    "arm": "gated",
+    "tokens": 1832917,
+    "cost": 2.2987259999999994,
+    "turns": 36,
+    "secs": 466
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-52708364b5f91e198defb022d1a5b4b3ebd9b563-v2ef375ac784985212b1805e1d0431dc8f1b3c171",
+    "arm": "naked",
+    "tokens": 2233393,
+    "cost": 2.043258,
+    "turns": 50,
+    "secs": 373
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-52708364b5f91e198defb022d1a5b4b3ebd9b563-v2ef375ac784985212b1805e1d0431dc8f1b3c171",
+    "arm": "gated",
+    "tokens": 2626526,
+    "cost": 2.7093530000000015,
+    "turns": 51,
+    "secs": 709
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-233cb1cc48635130e5602549856a6fa4ab4c087f-v35616345bb8052ea303186706cec663146f0f184",
+    "arm": "naked",
+    "tokens": 1868812,
+    "cost": 2.2310909999999997,
+    "turns": 43,
+    "secs": 358
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-233cb1cc48635130e5602549856a6fa4ab4c087f-v35616345bb8052ea303186706cec663146f0f184",
+    "arm": "gated",
+    "tokens": 2591904,
+    "cost": 2.9077074999999994,
+    "turns": 55,
+    "secs": 554
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-2dd8966fdcf11972062c540b7a787e4d0de8d372-v363c8a7e5ccdf6968fc7ab84a2053ac78036691d",
+    "arm": "naked",
+    "tokens": 154317,
+    "cost": 0.24674049999999997,
+    "turns": 7,
+    "secs": 38
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-2dd8966fdcf11972062c540b7a787e4d0de8d372-v363c8a7e5ccdf6968fc7ab84a2053ac78036691d",
+    "arm": "gated",
+    "tokens": 545570,
+    "cost": 0.6953084999999998,
+    "turns": 18,
+    "secs": 129
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-0833b5f6f140d04200ec91605f88704dd18e2970-v059c6fdc75567943479b23ebca7c07b5e9a7f34c",
+    "arm": "naked",
+    "tokens": 101185,
+    "cost": 0.1971585,
+    "turns": 4,
+    "secs": 25
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-0833b5f6f140d04200ec91605f88704dd18e2970-v059c6fdc75567943479b23ebca7c07b5e9a7f34c",
+    "arm": "gated",
+    "tokens": 583256,
+    "cost": 0.729111,
+    "turns": 17,
+    "secs": 111
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-f91ace96223cac8161c16dd061907e138fe85111-v059c6fdc75567943479b23ebca7c07b5e9a7f34c",
+    "arm": "naked",
+    "tokens": 522900,
+    "cost": 0.58834,
+    "turns": 17,
+    "secs": 88
+  },
+  {
+    "instance_id": "instance_qutebrowser__qutebrowser-f91ace96223cac8161c16dd061907e138fe85111-v059c6fdc75567943479b23ebca7c07b5e9a7f34c",
+    "arm": "gated",
+    "tokens": 1347878,
+    "cost": 1.438158,
+    "turns": 35,
+    "secs": 376
   }
 ]
