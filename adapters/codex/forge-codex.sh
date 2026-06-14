@@ -2,16 +2,20 @@
 # forge-codex — phase-gated, SINGLE-SESSION wrapper around `codex exec`.
 #
 # Enforcement: the wrapper controls phases, so the model cannot reach IMPLEMENT
-# until its spec passes the gate. Efficiency: all phases run in ONE Codex thread
-# (resume), so the model's exploration is NOT re-paid each phase — the steady-state
-# token overhead is ~the spec artifact, not a 2–3× context reload.
+# until its spec passes the gate. Cost: this is a 3-pass structure (SPEC / IMPLEMENT /
+# VERIFY as separate exec/resume turns); even single-thread it measures ~11-14x a naked
+# run (TOKEN_BUDGET.md). Use it as a bootstrap / high-stakes gate, not the steady default;
+# the cheaper path is the in-session hook or forge-codex-accept.
 #
 #   forge-codex "<goal>"
 #   FORGE_MODEL=gpt-5.5 FORGE_SPEC_TRIES=4 FORGE_SANDBOX=workspace-write forge-codex "<goal>"
 #   FORGE_BYPASS=1 forge-codex "<goal>"     # passthrough (ungated)
 set -euo pipefail
 
-HERE="$(cd "$(dirname "$0")" && pwd)"
+# Resolve through symlinks (installed onto PATH as a symlink; $0 is the link, not the file).
+SELF="$0"
+while [ -h "$SELF" ]; do d="$(cd "$(dirname "$SELF")" && pwd)"; SELF="$(readlink "$SELF")"; case "$SELF" in /*) ;; *) SELF="$d/$SELF";; esac; done
+HERE="$(cd "$(dirname "$SELF")" && pwd)"
 GATE="$(cd "$HERE/../../gates" && pwd)/forge_gate.py"
 ROOT="$PWD"
 GOAL="${*:-}"

@@ -17,27 +17,50 @@ keeps it small, and the measurement harness.
 | Gate block messages | only when the unmet-list changes (deduped) | ~200 tok × 1–2 blocks |
 | Done-gate reminder | only on state change | ~100 tok |
 
-The model already reads files and plans in the naked baseline; forge does **not**
-re-pay for that. The only genuinely *new* tokens are the spec artifact + a couple
-of block messages.
+The spec artifact and block messages are the *new content*, but they are **not** the
+dominant cost — measurement (below) shows the gate's real expense is the extra
+**turns** it forces (write spec → get blocked → implement → run acceptance → verify).
+Each new turn re-processes the whole growing context, so the token total scales with
+turn count, not with the size of the spec text. The table above is the per-item
+content cost; the section below is the measured total.
 
-## Why steady-state stays under 2×
+## Measured: in-session (Claude Code), gate ON vs OFF
 
-**In-session hooks (Claude Code; Codex once it has a native pre-edit hook).**
-One session, procedure prompt cached, spec written inline, blocks deduped. No
-context reload. Estimated overhead vs naked:
+An earlier version of this doc *estimated* the in-session overhead at "+3–9%, far
+under 2×". That estimate was wrong and is retracted — it counted only the spec
+*output* (~1k tokens) and ignored that the gate makes the model take **more turns**
+(write spec → get blocked → implement → run acceptance → verify), and in a
+multi-turn agent each new turn re-bills the whole growing context. Now measured
+directly (`bench/measure_tokens.sh`, headless `claude -p`, n=2, SAME task —
+implement an LRU cache + tests, a small STANDARD task):
 
-```
-STANDARD task, naked baseline ~20–50k tokens total
-  + spec output ~1k  + cached prompt ~0.3k (cache-read)  + blocks ~0.4k
-  ≈ +1.7k  ->  +3–9%   (far under 2×)
-```
+| model | turns OFF→ON | gross OFF→ON | gross ratio | $ ratio | real-token ratio* |
+| --- | --- | --- | --- | --- | --- |
+| sonnet | 5 → 11–16 | 135k → 403k | **2.99×** | 2.22× | **1.64×** |
+| opus | 4–5 → 21 | 88k → 805k | **9.2×** | 5.57× | 3.34× |
 
-The 2× ceiling is comfortable for the in-session path. The token lever that keeps
-the *average* low is **grade-scaling**: LIGHT tasks (typos, comments, renames)
-require only `restated_goal` + one acceptance check (~150 tok); the full
-8-axis spec is paid only on HEAVY (auth / payments / migration / security) —
-exactly where Fable itself escalates. Most tasks are LIGHT/STANDARD.
+*real-token = input + cache_creation + output, i.e. **excluding** `cache_read`.
+~92% of the gross figure is `cache_read` — the same context re-read each extra turn,
+billed at ~1/10 the input price. So the *cost* ratio (2.2× sonnet) is far below the
+*gross-token* ratio (3.0×), and the genuinely-new tokens the gate adds are smaller
+still (1.6× sonnet). Pick the metric honestly: by any of the three, a **small**
+task is **over** the 2× target.
+
+**Why a small task is the worst case.** The gate's cost is near-*fixed* (the spec
+artifact + a verify turn or two ≈ +8k real tokens). Divided into a tiny naked
+baseline (~12k) that is a big multiple; divided into a realistic 100k+ task it is
+~1.1×. So the ratio falls as task size grows — but that larger-task ratio is **not
+yet measured**, so it is not claimed here.
+
+**What helped.** Injecting the full grade-specific pass-conditions up front (the
+`contract` the hook now emits) cut sonnet's gross ratio from **4.53× → 2.99×** by
+removing the reactive bounce (model discovering each required field by getting
+blocked, each round re-billing context). It did not get a small task under 2×.
+
+The token lever that keeps the *average* low is **grade-scaling**: LIGHT tasks
+(typos, comments, renames) require only `restated_goal` + one acceptance check
+(~150 tok); the full 8-axis spec is paid only on HEAVY (auth / payments / migration
+/ security) — exactly where Fable itself escalates.
 
 **The wrapper path does NOT meet 2× — measured.** `forge-codex` runs SPEC /
 IMPLEMENT / VERIFY as three `codex exec`/`resume` turns. Even single-session
@@ -92,10 +115,14 @@ separate. <2× is a cost gate; the quality lift is the 3-arm shadow benchmark.
 ## Status (measured)
 
 - Grade-scaling implemented (`gates/forge_gate.py`).
-- **Claude Code in-session: real and ~<2×.** Native hooks fire (they are the live
-  mechanism running this session). The spec the model writes is ~1–2k tokens vs a
-  ~60–90k naked task baseline, so the overhead is a small additive term in ONE
-  pass, not a multiple.
+- **Claude Code in-session: measured, OVER 2× on a small task.** Native hooks fire
+  (they are the live mechanism running this session), but the gate is **not** a
+  single-pass additive term — it adds turns (spec → block → implement → verify), and
+  each turn re-bills context. Measured (headless `claude -p`, n=2, small STANDARD
+  LRU task): sonnet **2.99× gross / 2.22× cost / 1.64× real-tokens**, opus **9.2×
+  gross / 5.6× cost**. The up-front `contract` cut sonnet from 4.53× → 2.99×. Small
+  tasks are the worst case (fixed gate cost ÷ tiny baseline); the amortized
+  large-task ratio is plausibly near 1× but is **unmeasured, so not claimed**.
 - **Codex wrapper: measured 11–14×** — the cost is the 3-pass structure, not the
   gate. It is the *confirmed* headless Codex path, but it is expensive (bootstrap /
   high-stakes only).
@@ -117,12 +144,16 @@ separate. <2× is a cost gate; the quality lift is the 3-arm shadow benchmark.
   spec *output* (~1–2k) and ignored that producing the spec and **running the
   acceptance commands** adds tool-calls and context. The token overhead is
   dominated by *doing the process*, not by the wrapper structure. So:
-  - **LIGHT tasks: <2× holds** (grade-scaling keeps them to restated_goal + one check).
+  - **LIGHT tasks: expected <2× but not separately measured** — grade-scaling keeps them
+    to restated_goal + one acceptance check (~150 tok), so the fixed overhead is tiny;
+    the measured runs above are STANDARD, so treat LIGHT as a (reasoned) expectation only.
   - **STANDARD/HEAVY: honestly over 2×** against a *lazy* naked baseline — but much
     of the delta is verification work you'd want regardless. Against a *thorough*
     naked (one told to spec + test properly), the pure gate overhead is small.
 - **Net, honest:** total enforcement is achieved on both runtimes (CC in-session
-  hooks; Codex worktree-accept). The **<2× cost target is met for LIGHT and missed
-  for STANDARD+** — enforcing the full Fable process is real extra work, not free.
-  The "+3%", "wrapper ≈ 2–3×", and "Codex native hook = primary" claims were all
-  wrong; measurement corrected each.
+  hooks; Codex worktree-accept). The **<2× cost target is missed for STANDARD+**
+  (measured 2–9× gross / 2.2–5.6× cost on a small task) and **only expected — not
+  measured — to hold for LIGHT** (grade-scaling keeps it to restated_goal + one check).
+  Enforcing the full Fable process is real extra work, not free. The "+3%",
+  "wrapper ≈ 2–3×", "Codex native hook = primary", and "in-session ~<2×" claims were
+  all wrong; measurement corrected each.

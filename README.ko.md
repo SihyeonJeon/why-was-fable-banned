@@ -102,7 +102,7 @@ decision_events = { hypothesis_before, decision, rejected_options, confidence_be
 | `PostToolUse` | 편집 경로 기록 → `forbidden_paths` 위반 검증 |
 | `Stop` | done 게이트 미충족 시 경고 |
 
-- **Claude Code** · native 훅이 발화 → **in-session 하드차단** (한 세션, spec만 추가, LIGHT <2× 토큰)
+- **Claude Code** · native 훅이 발화 → **in-session 하드차단** (한 세션 내, 등급별 contract 선주입으로 1회 통과 유도)
 - **Codex** · `forge-codex-accept "<goal>" --repo <dir>`: 버리는 git worktree서 작업 →
   **게이트 통과분만 실 repo에 apply** (unspeced/forbidden 작업이 repo에 도달 못 함)
 - **모델 무관** · 게이트 엔진은 stdlib `python3`, 어떤 모델에도 동일 강제. 상태는 프로젝트 `.forge/`에 로컬

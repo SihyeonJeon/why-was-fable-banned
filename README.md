@@ -53,12 +53,12 @@ cd why-was-fable-banned && sh install.sh
 3. The agent writes `.forge/spec.json` (it's told exactly what to fill); edits stay blocked until it passes
 4. It implements, runs the acceptance commands, records evidence, then closes
 
-Grade auto-scales the depth: typos pay almost nothing, auth/payments/migration pay
-the full gate.
+Grade auto-scales the depth: typos (LIGHT) require only a restated goal + one
+acceptance check; auth/payments/migration (HEAVY) pay the full gate.
 
 ## Supported agents
 
-- **Claude Code**: native hooks, in-session block (the spec adds to one pass)
+- **Claude Code**: native hooks, in-session block; the grade-specific contract is injected up front
 - **Codex**: `forge-codex-accept "<goal>" --repo <dir>` (worktree-accept; headless)
 
 ## Where the rules came from
@@ -87,7 +87,6 @@ Measured in this repo, reproducible (`bash bench/run_quality.sh`, `bash tests/ru
 | --- | --- | --- |
 | Decision record per change | none | **enforced** |
 | Unspeced or forbidden-path edits reaching the repo | possible | **blocked** |
-| Token overhead, in-session (Claude Code) | 1× | ~+spec; LIGHT under 2× |
 | Adversarial / edge gate tests (downgrade, bypass, malformed, no-brick) | n/a | **35/35 pass** |
 
 Validated live: a Codex run left a protected file untouched and applied only the

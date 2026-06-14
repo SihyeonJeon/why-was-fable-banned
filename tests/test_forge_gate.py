@@ -96,6 +96,22 @@ class GateSpec(unittest.TestCase):
         s["acceptance_criteria"][0]["verify"]["type"] = "vibes"
         self.assertTrue(any("verify.type" in x for x in fg.gate_spec(s, self.d)))
 
+    def test_no_risks_blocks_standard(self):
+        # The contract promises STANDARD+ declares >=1 risk; the gate must enforce it
+        # (otherwise contract<->gate drift). An empty risks list is blocked.
+        e = fg.gate_spec(spec(risks=[]), self.d)
+        self.assertTrue(any("risks needs >=1" in x for x in e))
+
+    def test_placeholder_risk_variants_block(self):
+        # Placeholders must not satisfy the >=1-risk rule even with punctuation/casing.
+        for txt in ("none", "None.", "N/A", "n/a.", "No risks!", "nothing", "  no  "):
+            s = spec(risks=[{"risk": txt, "severity": "low", "mitigation": "echo ok"}])
+            self.assertTrue(any("blast-radius" in x for x in fg.gate_spec(s, self.d)),
+                            f"placeholder risk {txt!r} should block")
+        # A real risk that merely starts with 'no' must NOT be falsely rejected.
+        s = spec(risks=[{"risk": "no fallback path if cache misses", "severity": "low", "mitigation": "add default"}])
+        self.assertEqual(fg.gate_spec(s, self.d), [])
+
 
 class GateDone(unittest.TestCase):
     def setUp(self):
@@ -117,9 +133,17 @@ class GateDone(unittest.TestCase):
 
     def test_deferred_criterion_skips_fake_check(self):
         s = spec()
-        s["acceptance_criteria"][0]["evidence"] = "pending human deploy"
+        s["acceptance_criteria"][0]["evidence"] = "pending human deploy"  # serves as handoff
         s["acceptance_criteria"][0]["deferred"] = True
         self.assertEqual(fg.gate_done(s, self.d), [])
+
+    def test_deferred_without_handoff_blocks(self):
+        # A deferred criterion must record WHY it was dropped + what remains — a silent
+        # deferred (no evidence/handoff/reason) is the abandoned-task bypass; block it.
+        s = spec()
+        s["acceptance_criteria"][0]["deferred"] = True
+        s["acceptance_criteria"][0].pop("evidence", None)
+        self.assertTrue(any("deferred with no handoff" in x for x in fg.gate_done(s, self.d)))
 
     def test_forbidden_path_edit_blocks_done(self):
         (self.d / ".forge").mkdir(exist_ok=True)
@@ -245,6 +269,56 @@ class Classify(unittest.TestCase):
         self.assertEqual(fg._grade_for("fix payment auth token"), "HEAVY")
         self.assertEqual(fg._grade_for("fix a typo in the comment"), "LIGHT")
         self.assertEqual(fg._grade_for("add a sort function"), "STANDARD")
+
+
+class Contract(unittest.TestCase):
+    """The up-front contract must announce EVERY pass-condition the gate enforces, so a
+    model writes a first-try-passing spec instead of discovering each rule by getting
+    blocked. If a gate rule exists with no contract line, the reactive bounce returns."""
+
+    def test_light_minimal_only(self):
+        t = fg._contract_text("LIGHT")
+        self.assertIn("restated_goal", t)
+        self.assertIn("acceptance_criteria", t)
+        # LIGHT must NOT demand the STANDARD decision artifacts (token lever).
+        self.assertNotIn("rejected_alternatives", t)
+        self.assertNotIn("constraints.invariant", t)
+
+    def test_standard_lists_all_blocking_fields(self):
+        t = fg._contract_text("STANDARD")
+        for needle in ("restated_goal", "differ from raw_goal", "non_goals",
+                       "must_read", "authority_reason", "MUST exist",
+                       "rejected_alternatives", "risks", "placeholder like 'none'",
+                       "constraints.invariant", "acceptance_ref", "ambiguities",
+                       "deferred", "forbidden_paths"):
+            self.assertIn(needle, t, needle)
+
+    def test_heavy_adds_depth(self):
+        t = fg._contract_text("HEAVY")
+        self.assertIn("constraints.architectural", t)
+        self.assertIn("similar_implementations", t)
+        self.assertIn("observations", t)
+
+    def test_enums_match_gate_constants(self):
+        # The contract's enum values are generated FROM the gate constants — assert they
+        # stay in sync so a model is never told a value the gate will reject.
+        t = fg._contract_text("STANDARD")
+        for v in fg.ACC_TYPES:
+            self.assertIn(v, t)
+        for v in fg.SEVERITIES:
+            self.assertIn(v, t)
+        for v in fg.ALT_CATEGORIES:
+            self.assertIn(v, t)
+
+    def test_contract_command_reads_grade_lock(self):
+        with tempfile.TemporaryDirectory() as d:
+            fg.main(["scaffold", "--root", d, "--goal", "add auth token check"])  # HEAVY
+            import io
+            from contextlib import redirect_stdout
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                fg.main(["contract", "--root", d])
+            self.assertIn("similar_implementations", buf.getvalue())
 
 
 if __name__ == "__main__":

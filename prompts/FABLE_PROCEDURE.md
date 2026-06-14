@@ -73,7 +73,7 @@ written reason — never a blank.
 [ ] every ambiguity = question + resolution + the authority that resolved it
 [ ] >=1 must_read justified by authority — path is a REAL file you read (or external:true)
 [ ] >=2 rejected_alternatives, each a category + the broken boundary it violates
-[ ] every risk has a severity (by blast radius) + runnable mitigation; high/blocking mirrored into acceptance
+[ ] >=1 risk (not 'none'), each a severity (by blast radius) + runnable mitigation; high/blocking mirrored into acceptance
 [ ] >=1 constraints.invariant — what must NOT change
 ```
 **HEAVY** (auth / payments / migration / security) — all of STANDARD, plus:

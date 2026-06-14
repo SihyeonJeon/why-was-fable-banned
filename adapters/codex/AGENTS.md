@@ -13,8 +13,8 @@ VERIFY. Do not write implementation code until the SPEC passes its gate.
 - `constraints` — architectural / invariant / convention
 - `rejected_alternatives` — ≥2, each a category + the boundary it breaks; prefer
   removing a failure path over guarding it
-- `risks` — severity by **blast radius**, runnable mitigation, high risks mirrored
-  into acceptance
+- `risks` — **≥1** (not 'none'), each severity by **blast radius** + runnable
+  mitigation, high risks mirrored into acceptance
 - `acceptance_criteria` — runnable commands, not prose
 
 Then run: `python3 <forge>/gates/forge_gate.py validate --root "$PWD" --gate spec`

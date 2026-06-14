@@ -1,8 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "fable-forge spec",
+  "description": "Advisory reference for the STANDARD grade. gates/forge_gate.py is authoritative and grade-aware: LIGHT needs only restated_goal + >=1 runnable acceptance_criteria; STANDARD adds the fields required below; HEAVY additionally requires constraints.architectural, similar_implementations, and >=1 observation at done.",
   "type": "object",
-  "required": ["restated_goal", "non_goals", "must_read", "rejected_alternatives", "acceptance_criteria"],
+  "required": ["restated_goal", "non_goals", "must_read", "rejected_alternatives", "risks", "constraints", "acceptance_criteria"],
   "properties": {
     "grade": {"type": "string", "enum": ["LIGHT", "STANDARD", "HEAVY"]},
     "phase": {"type": "string"},
@@ -18,20 +19,20 @@
       "type": "object", "required": ["path", "authority_reason"],
       "properties": {"path": {"type": "string"},
         "authority_reason": {"type": "string", "description": "the contract/boundary this file owns that the change must satisfy"}}}},
-    "constraints": {"type": "object", "properties": {
+    "constraints": {"type": "object", "required": ["invariant"], "properties": {
       "architectural": {"type": "array", "items": {"type": "string"}},
-      "invariant": {"type": "array", "items": {"type": "string"}},
+      "invariant": {"type": "array", "minItems": 1, "items": {"type": "string"}, "description": "STANDARD+: >=1, what must NOT change"},
       "convention": {"type": "array", "items": {"type": "string"}}}},
     "rejected_alternatives": {"type": "array", "minItems": 2, "items": {
       "type": "object", "required": ["category", "alternative", "broken_boundary"],
       "properties": {
-        "category": {"type": "string", "enum": ["tempting_shortcut", "architecture", "scope", "compatibility"]},
+        "category": {"type": "string", "minLength": 1, "description": "non-empty label; recommended: tempting_shortcut | architecture | scope | compatibility (any descriptive label is accepted)"},
         "alternative": {"type": "string"},
         "broken_boundary": {"type": "string", "description": "the principle/invariant/cost this option violates"}}}},
-    "risks": {"type": "array", "items": {
+    "risks": {"type": "array", "minItems": 1, "items": {
       "type": "object", "required": ["risk", "severity", "mitigation"],
       "properties": {
-        "risk": {"type": "string"},
+        "risk": {"type": "string", "minLength": 1, "description": "a real blast-radius risk; a placeholder (none / n/a / no risks) is rejected by the gate"},
         "severity": {"type": "string", "enum": ["low", "medium", "high", "blocking"]},
         "mitigation": {"type": "string", "description": "runnable/checkable, not 'be careful'"},
         "acceptance_ref": {"type": "string", "description": "required for high/blocking — the acceptance criterion that covers it"}}}},

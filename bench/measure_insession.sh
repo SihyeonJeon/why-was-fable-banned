@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Measure the IN-SESSION token overhead: same task, one codex session each —
-# naked vs native-hook-gated (repo-local .codex/hooks.json, the steady-state path).
-# This is the real <2x test now that Codex has native PreToolUse hooks.
+# naked vs native-hook-gated (repo-local .codex/hooks.json).
+# CAVEAT: Codex native PreToolUse hooks do NOT fire under `codex exec` (headless) in
+# 0.139 (see ENFORCEMENT.md), so this script measures a real gate only in the interactive
+# `codex` TUI. For headless token numbers use bench/measure_tokens.sh (claude -p + Codex
+# worktree-accept), which is the path actually shipped.
 set +e
 FORGE="$(cd "$(dirname "$0")/.." && pwd)"
 HOOKS="$FORGE/adapters/hooks"

@@ -13,8 +13,8 @@ VERIFY:
   envelope, never the raw ask verbatim), `non_goals`, `must_read` (files chosen by
   authority + reason), `constraints` (architectural/invariant/convention),
   `rejected_alternatives` (≥2: category + the boundary each breaks; remove a path,
-  don't guard it), `risks` (severity by blast radius + runnable mitigation; mirror
-  high risks into acceptance), `acceptance_criteria` (runnable commands, not prose).
+  don't guard it), `risks` (≥1, not 'none'; severity by blast radius + runnable
+  mitigation; mirror high risks into acceptance), `acceptance_criteria` (runnable commands, not prose).
 - **IMPLEMENT** — smallest change respecting invariants. New scope mid-task →
   update the spec. Fix the system, never weaken a check to pass it.
 - **VERIFY** — run every acceptance criterion, record live `evidence`. No evidence

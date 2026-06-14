@@ -6,13 +6,19 @@
 #
 # Mechanism: the worker runs in a throwaway git worktree. Its diff is applied to the
 # real repo ONLY if the spec + done gate passes (and it touched no forbidden path).
-# The real repo is never mutated by unspeced/forbidden work. Cost ≈ ONE codex pass.
+# The real repo is never mutated by unspeced/forbidden work. Structurally ONE codex
+# invocation (not the wrapper's 3), but the gated worker does more — write a full spec +
+# run real verification — so measured cost is over 2x a naked run on STANDARD (TOKEN_BUDGET.md).
 #
 #   forge-codex-accept "<goal>" [--repo DIR]
 #   FORGE_MODEL=gpt-5.5 FORGE_EFFORT=medium forge-codex-accept "<goal>"
 set -euo pipefail
 
-HERE="$(cd "$(dirname "$0")" && pwd)"
+# Resolve through symlinks — this script is installed onto PATH as a symlink, so $0 is
+# the link, not the real file; dirname "$0" would point at the bin dir, breaking ../../gates.
+SELF="$0"
+while [ -h "$SELF" ]; do d="$(cd "$(dirname "$SELF")" && pwd)"; SELF="$(readlink "$SELF")"; case "$SELF" in /*) ;; *) SELF="$d/$SELF";; esac; done
+HERE="$(cd "$(dirname "$SELF")" && pwd)"
 GATE="$(cd "$HERE/../../gates" && pwd)/forge_gate.py"
 REPO="$PWD"; MODEL="${FORGE_MODEL:-gpt-5.5}"; EFFORT="${FORGE_EFFORT:-}"; GOAL=""
 while [ $# -gt 0 ]; do case "$1" in --repo) REPO="$2"; shift 2;; *) GOAL="$1"; shift;; esac; done
@@ -28,19 +34,20 @@ trap cleanup EXIT
 
 git -C "$REPO" worktree add --detach "$WT" "$BASE" >/dev/null 2>&1
 python3 "$GATE" scaffold --root "$WT" --goal "$GOAL" >/dev/null
+# Same grade-specific contract the Claude hook injects — generated from the gate's own
+# rules so the model writes a first-try-passing spec instead of discovering each rule by
+# being rejected (every such resume round re-bills the whole context).
+CONTRACT="$(python3 "$GATE" contract --root "$WT" 2>/dev/null)"
 
 OPTS=(--json --skip-git-repo-check -s workspace-write -m "$MODEL")
 [ -n "$EFFORT" ] && OPTS+=(-c model_reasoning_effort="$EFFORT")
 RUNLOG="$WT/.forge/codex_run.jsonl"
 codex exec "${OPTS[@]}" -C "$WT" "Task: ${GOAL}
 
-Before editing code, WRITE .forge/spec.json with: restated_goal (intent + constraint
-envelope, not the raw ask), non_goals, must_read (real file paths you read + authority
-reason), constraints.invariant (>=1, what must NOT change), rejected_alternatives (>=2,
-each {category, alternative, broken_boundary}), risks ({severity by blast radius,
-mitigation}), forbidden_paths (globs you must NOT modify), acceptance_criteria
-({criterion, verify:{type,value}} where value is a runnable command). THEN implement the
-smallest change. THEN run EACH acceptance command and put its live output into that
+${CONTRACT}
+
+List globs you must not modify in forbidden_paths. After the spec passes, implement the
+smallest change, then run EACH acceptance command and write its live output into that
 criterion's \"evidence\". Do not fabricate evidence." \
   < /dev/null > "$RUNLOG" 2>/dev/null || true
 

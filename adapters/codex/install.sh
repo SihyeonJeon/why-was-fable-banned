@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # fable-forge — Codex installer.
-# PRIMARY (steady-state, in-session, ~<2x tokens): native Codex hooks merged into
+# PRIMARY (steady-state, in-session): native Codex hooks merged into
 # ~/.codex/hooks.json — PreToolUse blocks apply_patch until the spec gate passes,
-# inside ONE codex session (no multi-pass reload).
+# inside ONE codex session (no multi-pass reload). Token cost is measured in
+# TOKEN_BUDGET.md (the gate adds turns; not a free single additive term).
 # FALLBACK: the forge-codex wrapper (multi-pass; ~10x, use only where a runtime
 # without hook trust is needed).
 # Also places the procedure mandate in ~/.codex/AGENTS.md (inherited every session).
@@ -24,7 +25,7 @@ chmod +x "$HERE/forge-codex.sh" 2>/dev/null || true
 mkdir -p "$CODEX_HOME"
 [ -f "$HOOKS_JSON" ] || echo '{}' > "$HOOKS_JSON"
 
-# --- 1) native hooks (the <2x path) ---
+# --- 1) native hooks (the in-session path) ---
 HOOK_DIR="$HOOK_DIR" HOOKS_JSON="$HOOKS_JSON" MODE="$MODE" python3 - <<'PY'
 import json, os
 hook_dir = os.environ["HOOK_DIR"]; path = os.environ["HOOKS_JSON"]; mode = os.environ["MODE"]
@@ -64,19 +65,23 @@ if [ "$MODE" = "install" ]; then
   { echo "$MARK_BEGIN"; cat "$HERE/AGENTS.md"; echo "$MARK_END"; } >> "$GLOBAL_AGENTS"
 fi
 
-# --- 3) wrapper fallback on PATH ---
+# --- 3) headless commands on PATH ---
+# forge-codex-accept = PRIMARY headless path (worktree-accept; what README documents);
+# forge-codex = older multi-pass wrapper fallback for non-git contexts.
 if [ "$MODE" = "install" ]; then
-  mkdir -p "$BIN_DIR"; ln -sf "$HERE/forge-codex.sh" "$BIN_DIR/forge-codex"
+  mkdir -p "$BIN_DIR"
+  ln -sf "$HERE/forge-codex-accept.sh" "$BIN_DIR/forge-codex-accept"
+  ln -sf "$HERE/forge-codex.sh" "$BIN_DIR/forge-codex"
 else
-  rm -f "$BIN_DIR/forge-codex"
+  rm -f "$BIN_DIR/forge-codex-accept" "$BIN_DIR/forge-codex"
 fi
 
 if [ "$MODE" = "install" ]; then
   echo "fable-forge (Codex): installed."
-  echo "  PRIMARY: native hooks in $HOOKS_JSON (in-session gate, ~<2x)."
-  echo "    -> TRUST them: run 'codex' then '/hooks' and approve, OR for automation pass"
-  echo "       'codex exec --dangerously-bypass-hook-trust ...'."
-  echo "  mandate: $GLOBAL_AGENTS   wrapper fallback: $BIN_DIR/forge-codex"
+  echo "  PRIMARY headless: $BIN_DIR/forge-codex-accept \"<goal>\" --repo <dir>  (worktree-accept)."
+  echo "  in-session: native hooks in $HOOKS_JSON (when they fire — TRUST via 'codex' then '/hooks',"
+  echo "    or for automation pass 'codex exec --dangerously-bypass-hook-trust ...')."
+  echo "  mandate: $GLOBAL_AGENTS   multi-pass wrapper fallback: $BIN_DIR/forge-codex"
 else
-  echo "fable-forge (Codex): removed (hooks, AGENTS block, wrapper shim)."
+  echo "fable-forge (Codex): removed (hooks, AGENTS block, PATH shims)."
 fi

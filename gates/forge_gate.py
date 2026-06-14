@@ -13,6 +13,7 @@ Subcommands:
   status    --root R                         human-readable state
   close     --root R                         clear ACTIVE (after done gate passes)
   classify  --text T                         exit 0 if prompt is work-shaped, else 1
+  contract  --root R                          print the grade's full pass-conditions (inject up front)
 
 Exit codes: 0 = pass/yes, 1 = fail/no, 2 = usage/internal error.
 """
@@ -31,6 +32,9 @@ SPEC_NAME = "spec.json"
 ACTIVE_NAME = "ACTIVE"
 
 ALT_CATEGORIES = {"tempting_shortcut", "architecture", "scope", "compatibility"}
+# A "risk" that normalizes to one of these is a non-declaration — rejected so the
+# STANDARD+ risk requirement can't be satisfied with a placeholder.
+NO_RISK_PLACEHOLDERS = {"none", "n/a", "na", "no risk", "no risks", "nothing", "no"}
 SEVERITIES = {"low", "medium", "high", "blocking"}
 ACC_TYPES = {"command", "grep", "stat", "artifact", "human_visual", "test"}
 # Evidence that is really a non-run admission — the honesty invariant, enforced.
@@ -105,6 +109,13 @@ def _inv_text(x) -> str:
     if isinstance(x, dict):
         return x.get("invariant") or x.get("text") or ""
     return ""
+
+
+def _is_placeholder_risk(text) -> bool:
+    """True if a 'risk' is really a non-declaration ('none', 'N/A.', 'No risks!', ...).
+    Strip all non-alphanumerics so trailing punctuation/spacing can't smuggle one past."""
+    core = re.sub(r"[^a-z0-9]", "", _norm(text))
+    return core in {re.sub(r"[^a-z0-9]", "", p) for p in NO_RISK_PLACEHOLDERS}
 
 
 def _forbidden_hits(spec: dict, root) -> list:
@@ -224,6 +235,14 @@ def gate_spec(spec: dict, root=None) -> list[str]:
             e.append(f"risks[{i}] needs a runnable mitigation, not 'be careful'.")
         if sev in {"high", "blocking"} and not _nonempty(r.get("acceptance_ref")):
             e.append(f"risks[{i}] is {sev} — mirror it into an acceptance criterion (acceptance_ref).")
+    # The contract promises STANDARD+ declares at least one risk; enforce it so the two
+    # never drift (a spec with no risk block is "I see no blast radius" — make it explicit).
+    good_risks = [r for r in spec.get("risks", []) if isinstance(r, dict)
+                  and _nonempty(r.get("risk")) and not _is_placeholder_risk(r.get("risk"))
+                  and (r.get("severity") or "").strip().lower() in SEVERITIES
+                  and _nonempty(r.get("mitigation"))]
+    if not good_risks:
+        e.append("risks needs >=1 {risk, severity, mitigation} — name a real blast-radius risk, not 'none'.")
 
     # STANDARD anchor: the cheapest constraint — what must NOT change. Without it,
     # later risk/alternative/acceptance decisions have nothing to anchor on.
@@ -260,9 +279,18 @@ def gate_done(spec: dict, root=None) -> list[str]:
         e.append("no acceptance_criteria to verify.")
     for i, c in enumerate(acc):
         ev = c.get("evidence")
+        if c.get("deferred") is True:
+            # Strict `is True`: a truthy non-bool like "false" must NOT defer-and-skip.
+            # Deferred is exempt from live evidence, but must NOT be a silent skip: it has
+            # to record WHY it was dropped and what remains (the abandoned-task handoff).
+            handoff = c.get("handoff") or c.get("reason") or (ev if isinstance(ev, str) else "")
+            if not _nonempty(handoff):
+                e.append(f"acceptance_criteria[{i}] is deferred with no handoff — record why it "
+                         "was dropped and what remains (in evidence/handoff/reason).")
+            continue
         if not _nonempty(ev):
             e.append(f"acceptance_criteria[{i}] has no evidence — run the check and cite live output (fail closed).")
-        elif not c.get("deferred"):
+        else:
             hit = next((m for m in FAKE_MARKERS if m in ev.lower()), None)
             if hit:
                 e.append(f"acceptance_criteria[{i}] evidence reads as unfilled/fabricated ('{hit}') — "
@@ -280,7 +308,73 @@ def gate_done(spec: dict, root=None) -> list[str]:
     return e
 
 
+# ------------------------------------------------------------- contract text ---
+def _contract_text(grade: str) -> str:
+    """The full pass-conditions for this grade, delivered to the model UP FRONT so it
+    writes a first-try-passing spec instead of discovering each rule by getting blocked.
+
+    This is the data-grounded part: Fable's recorded sessions front-load the whole plan
+    (restate -> bound -> reject alternatives -> declare acceptance) BEFORE touching code,
+    rather than probing reactively. Agent runtimes default to the opposite (act, read the
+    error, retry) — every such round re-reads the growing context (cache cost) and burns a
+    turn. So we hand the model the exact contract once and tell it to emit the whole artifact
+    in a single pass. The strict enum values are generated from the gate's own constants
+    (ACC_TYPES / SEVERITIES); the per-field requirement lines are hand-maintained to mirror
+    gate_spec/gate_done, and a unit test (tests Contract.*) asserts they stay in parity so a
+    rule can't be enforced without being announced here."""
+    # Only show the enums the grade actually uses — severity/category are STANDARD+
+    # concepts, so listing them on a LIGHT task is pure noise (tokens).
+    if grade == "LIGHT":
+        enums = f"enums — verify.type in {sorted(ACC_TYPES)}."
+    else:
+        # Only verify.type and severity are STRICTLY enforced enums; category is lenient
+        # (any non-empty label passes), so it is described in the field rule, not here.
+        enums = (f"strict enums — verify.type in {sorted(ACC_TYPES)}; "
+                 f"severity in {sorted(SEVERITIES)}.")
+    head = [
+        f"[fable-forge] GATE CONTRACT (grade {grade}). Edits are HARD-BLOCKED until "
+        ".forge/spec.json passes the SPEC gate. Fill the spec COMPLETELY in ONE edit, then "
+        "self-check once with `validate --gate spec`, then implement. Do NOT probe with a "
+        "throwaway edit first — it is blocked and costs a wasted round. Required fields:",
+        "- restated_goal: intent + constraint envelope; MUST differ from raw_goal (copying the ask = under-interpreted = blocked).",
+        "- acceptance_criteria: >=1 {criterion, verify:{type,value}} where verify.value is a RUNNABLE command/check, not prose.",
+    ]
+    std = [
+        "- non_goals: >=1 (the over-broad version you are NOT doing).",
+        "- must_read: >=1 {path, authority_reason}; path MUST exist under root (or set external:true).",
+        "- rejected_alternatives: >=2 {category, alternative, broken_boundary}; category must be non-empty "
+        f"(recommended {sorted(ALT_CATEGORIES)}, but any descriptive label passes) and broken_boundary carries the reasoning.",
+        "- risks: >=1 {risk, severity, mitigation}; the risk must be real (a placeholder like 'none'/'n/a'/'no risks' is rejected), mitigation runnable not 'be careful'. If severity high/blocking, also set acceptance_ref to a criterion.",
+        "- constraints.invariant: >=1 (what must NOT change — don't delete prior work / leak / weaken a check).",
+        "- ambiguities: optional, but any entry you add needs {question, resolution, authority} (who/what resolved it).",
+    ]
+    heavy = [
+        "- constraints.architectural: >=1 {constraint, evidence_ref} (pin what proved each).",
+        "- similar_implementations: >=1 {path, why} to mirror so you don't break an invariant.",
+        "- observations (recorded as you go): >=1 with a non-empty `observation` "
+        "(add changed_understanding + evidence_ref for traceability).",
+    ]
+    done = ("At DONE: every acceptance_criteria needs evidence = real live command output "
+            "(words like 'tbd'/'assumed'/'would pass'/'n/a' are rejected). If you cannot run "
+            "one, set deferred:true AND a handoff (why dropped + what remains) — a deferred "
+            "criterion with no handoff is blocked. Never edit a forbidden_paths glob.")
+    if grade == "LIGHT":
+        body = head
+    elif grade == "HEAVY":
+        body = head + std + heavy
+    else:
+        body = head + std
+    return "\n".join(body + [done, enums, "Do not narrate this contract to the user."])
+
+
 # ----------------------------------------------------------------- commands ---
+def cmd_contract(args) -> int:
+    root = Path(args.root).resolve()
+    spec, _ = load_spec(root)
+    print(_contract_text(_effective_grade(spec or {}, root)))
+    return 0
+
+
 def cmd_scaffold(args) -> int:
     root = Path(args.root).resolve()
     fdir = root / FORGE_DIR
@@ -402,6 +496,7 @@ def main(argv=None) -> int:
     c = sub.add_parser("close"); c.add_argument("--root", required=True)
     c.add_argument("--force", action="store_true"); c.set_defaults(fn=cmd_close)
     cl = sub.add_parser("classify"); cl.add_argument("--text", default=""); cl.set_defaults(fn=cmd_classify)
+    ct = sub.add_parser("contract"); ct.add_argument("--root", required=True); ct.set_defaults(fn=cmd_contract)
 
     args = p.parse_args(argv)
     try:
