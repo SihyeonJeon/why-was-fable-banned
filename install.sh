@@ -53,6 +53,6 @@ if [ -z "$UNINSTALL" ]; then
   echo "wfb installed (scope: $SCOPE). Work-shaped prompts auto-start a gated task;"
   echo "edits are blocked until .forge/spec.json passes the gate."
   if [ "$SCOPE" = "project" ]; then echo "  active only in: $PWD"; else echo "  active in every Claude Code project on this machine"; fi
-  echo "  toggle in-session:  forge off  /  forge on  /  forge status"
-  echo "  Codex headless:      forge-codex-accept \"<goal>\" --repo <dir>   (adapters/codex/ENFORCEMENT.md)"
+  echo "  toggle in-session:  wfb off  /  wfb on  /  wfb status"
+  echo "  Codex headless:      wfb-codex-accept \"<goal>\" --repo <dir>   (adapters/codex/ENFORCEMENT.md)"
 fi

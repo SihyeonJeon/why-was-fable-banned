@@ -70,18 +70,18 @@ fi
 # forge-codex = older multi-pass wrapper fallback for non-git contexts.
 if [ "$MODE" = "install" ]; then
   mkdir -p "$BIN_DIR"
-  ln -sf "$HERE/forge-codex-accept.sh" "$BIN_DIR/forge-codex-accept"
-  ln -sf "$HERE/forge-codex.sh" "$BIN_DIR/forge-codex"
+  ln -sf "$HERE/forge-codex-accept.sh" "$BIN_DIR/wfb-codex-accept"
+  ln -sf "$HERE/forge-codex.sh" "$BIN_DIR/wfb-codex"
 else
-  rm -f "$BIN_DIR/forge-codex-accept" "$BIN_DIR/forge-codex"
+  rm -f "$BIN_DIR/wfb-codex-accept" "$BIN_DIR/wfb-codex" "$BIN_DIR/forge-codex-accept" "$BIN_DIR/forge-codex"
 fi
 
 if [ "$MODE" = "install" ]; then
   echo "wfb (Codex): installed."
-  echo "  PRIMARY headless: $BIN_DIR/forge-codex-accept \"<goal>\" --repo <dir>  (worktree-accept)."
+  echo "  PRIMARY headless: $BIN_DIR/wfb-codex-accept \"<goal>\" --repo <dir>  (worktree-accept)."
   echo "  in-session: native hooks in $HOOKS_JSON (when they fire — TRUST via 'codex' then '/hooks',"
   echo "    or for automation pass 'codex exec --dangerously-bypass-hook-trust ...')."
-  echo "  mandate: $GLOBAL_AGENTS   multi-pass wrapper fallback: $BIN_DIR/forge-codex"
+  echo "  mandate: $GLOBAL_AGENTS   multi-pass wrapper fallback: $BIN_DIR/wfb-codex"
 else
   echo "wfb (Codex): removed (hooks, AGENTS block, PATH shims)."
 fi

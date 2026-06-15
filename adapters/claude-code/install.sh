@@ -97,9 +97,9 @@ PY
 
 if [ "$MODE" = "install" ]; then
   echo "wfb: active for all Claude Code sessions. Toggle in-session by typing:"
-  echo "             forge off            (this dir)        forge on / forge status"
-  echo "             forge off here       (this chat only)  forge on here"
-  echo "             forge off all        (whole machine)   forge on all"
+  echo "             wfb off            (this dir)        wfb on / wfb status"
+  echo "             wfb off here       (this chat only)  wfb on here"
+  echo "             wfb off all        (whole machine)   wfb on all"
   echo "             one-off env bypass:  FORGE_BYPASS=1"
 else
   echo "wfb: removed."

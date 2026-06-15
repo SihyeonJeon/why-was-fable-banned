@@ -40,11 +40,11 @@ cd why-was-fable-banned && sh install.sh
 
   | type | scope | persists |
   | --- | --- | --- |
-  | `forge off` / `forge on` | this **project** dir | across sessions in this repo |
-  | `forge off here` / `forge on here` | this **session** only | this chat |
-  | `forge off all` / `forge on all` | the whole **machine** | everywhere |
+  | `wfb off` / `wfb on` | this **project** dir | across sessions in this repo |
+  | `wfb off here` / `wfb on here` | this **session** only | this chat |
+  | `wfb off all` / `wfb on all` | the whole **machine** | everywhere |
 
-  Most-specific wins (session > project > machine > default on), so you can turn the project off and force one hard session on. State is a file, so it survives reboots until you flip it back. `forge status` shows all three. One-off env bypass: `FORGE_BYPASS=1`.
+  Most-specific wins (session > project > machine > default on), so you can turn the project off and force one hard session on. State is a file, so it survives reboots until you flip it back. `wfb status` shows all three. One-off env bypass: `FORGE_BYPASS=1`.
 - **Status line**: when the gate is on, `[why-was-fable-banned]` shows in the Claude Code status line (installed only if you don't already have one; otherwise the installer prints how to add the segment)
 - **Works wherever Claude Code runs**: terminal, the VS Code and JetBrains extensions, desktop (they share the same hooks), plus Codex. It does not apply to non-Claude-Code/Codex agents (e.g. Cursor's own agent)
 
@@ -68,7 +68,7 @@ acceptance check; auth/payments/migration (HEAVY) pay the full gate.
 ## Supported agents
 
 - **Claude Code**: native hooks, in-session block; the grade-specific contract is injected up front
-- **Codex**: `forge-codex-accept "<goal>" --repo <dir>` (worktree-accept; headless)
+- **Codex**: `wfb-codex-accept "<goal>" --repo <dir>` (worktree-accept; headless)
 
 ## Where the rules came from
 

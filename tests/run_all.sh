@@ -135,11 +135,11 @@ def state():
     p = os.path.join(D, ".forge", "STATE"); return open(p).read().strip() if os.path.exists(p) else "(none)"
 def out(n, c): print(f"{'PASS' if c else 'FAIL'}|{n}")
 out("edit blocked before toggle", edit_rc() == 2)
-o = ups("forge off"); out("forge off blocks prompt + project STATE=off", '"decision": "block"' in o and state() == "off")
+o = ups("wfb off"); out("wfb off blocks prompt + project STATE=off", '"decision": "block"' in o and state() == "off")
 out("edit allowed while off", edit_rc() == 0)
-ups("forge on"); out("forge on -> project STATE=on", state() == "on")
+ups("wfb on"); out("wfb on -> project STATE=on", state() == "on")
 out("edit blocked again after on", edit_rc() == 2)
-ups("forge off"); ups("forge on here", "HARD")
+ups("wfb off"); ups("wfb on here", "HARD")
 out("session 'on here' overrides project off", edit_rc("HARD") == 2)
 out("other session inherits project off", edit_rc("OTHER") == 0)
 PY
